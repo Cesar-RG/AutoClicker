@@ -1,122 +1,154 @@
-# AutoClicker Multiplataforma
+# 🖱️ AutoClicker Multiplataforma
 
-A cross-platform auto-clicker desktop application built with Python and PySide6 (Qt). It automatically clicks at your current mouse position at a configurable rate, with hotkey support for start, stop, and emergency stop.
+Auto-clicker de escritorio multiplataforma construido con Python y PySide6 (Qt). Hace clic automáticamente en la posición actual del mouse a una frecuencia configurable, con hotkeys para iniciar, detener y parada de emergencia.
 
-## Features
+## 📥 Descargas rápidas
 
-- **Cross-platform** — works on Windows, Linux, and macOS
-- **Configurable click rate** — 1 to 20 clicks per second
-- **Hotkey controls** — F1 (start), F2 (stop), Esc (emergency stop)
-- **Global hotkeys on Windows** — hotkeys work even when the app is not focused (via the `keyboard` library)
-- **Window-scoped hotkeys on Linux/macOS** — hotkeys work when the app window is focused
-- **Live click counter** — displays total clicks in real time
-- **Failsafe** — move your mouse to the top-left corner of the screen to instantly stop clicking (PyAutoGUI failsafe)
-- **Modern UI** — dark gradient theme with styled buttons and inputs
+| Plataforma | Descargar |
+|------------|-----------|
+| 🪟 **Windows** | [AutoClicker.exe](https://github.com/Cesar-RG/AutoClicker/releases/latest/download/AutoClicker.exe) |
+| 🐧 **Linux** | [AutoClicker](https://github.com/Cesar-RG/AutoClicker/releases/latest/download/AutoClicker) |
 
-## Screenshots
+> Si los enlaces no funcionan, ve a [Releases](https://github.com/Cesar-RG/AutoClicker/releases) o descarga el artefacto desde la pestaña **Actions** del repositorio.
 
-The application window displays:
-- Detected operating system
-- Clicks-per-second selector
-- Live click counter
-- Start / Stop buttons
-- Hotkey reference and failsafe info
+## ✨ Funcionalidades
 
-## Requirements
+- **Multiplataforma** — Windows, Linux y macOS
+- **Frecuencia configurable** — de 1 a 20 clics por segundo
+- **Control por hotkeys** — F1 (iniciar), F2 (detener), Esc (parada de emergencia)
+- **Hotkeys globales en Windows** — funcionan aunque la ventana no tenga el foco (librería `keyboard`)
+- **Hotkeys de ventana en Linux/macOS** — funcionan con la ventana enfocada
+- **Contador de clics en vivo** — muestra el total de clics en tiempo real
+- **Failsafe** — mueve el mouse a la esquina superior izquierda para detener todo instantáneamente
+- **Interfaz moderna** — tema oscuro con degradados, botones y campos estilizados
+
+## 📸 Captura de pantalla
+
+La ventana de la aplicación muestra:
+- Sistema operativo detectado
+- Selector de clics por segundo (CPS)
+- Contador de clics en vivo
+- Botones Iniciar / Detener
+- Referencia de hotkeys e info de failsafe
+
+## 📋 Requisitos
 
 - Python 3.12+
-- [PySide6](https://pypi.org/project/PySide6/) — Qt bindings for the GUI
-- [PyAutoGUI](https://pypi.org/project/PyAutoGUI/) — mouse click automation
-- [keyboard](https://pypi.org/project/keyboard/) — global hotkeys (Windows only, optional on other platforms)
+- [PySide6](https://pypi.org/project/PySide6/) — interfaz gráfica (Qt)
+- [PyAutoGUI](https://pypi.org/project/PyAutoGUI/) — automatización de clics
+- [keyboard](https://pypi.org/project/keyboard/) — hotkeys globales (solo Windows, opcional en otros SO)
 
-## Installation
+## 🚀 Instalación
 
-### 1. Clone the repository
+### 1. Clonar el repositorio
 
 ```bash
 git clone https://github.com/Cesar-RG/AutoClicker.git
 cd AutoClicker
 ```
 
-### 2. Create a virtual environment (recommended)
+### 2. Instalar uv (recomendado)
+
+[uv](https://docs.astral.sh/uv/) es un gestor de paquetes rápido para Python. Instálalo y sincroniza las dependencias:
+
+```bash
+# Instalar uv (Linux/macOS)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# En Windows:
+# powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+uv sync
+```
+
+Alternativamente, con pip + venv:
 
 ```bash
 python -m venv venv
-# Windows
-venv\Scripts\activate
-# Linux / macOS
-source venv/bin/activate
-```
-
-### 3. Install dependencies
-
-```bash
+source venv/bin/activate  # Linux/macOS
+# venv\Scripts\activate   # Windows
 pip install PySide6 pyautogui keyboard
 ```
 
-> **Note:** On Linux/macOS, the `keyboard` library is optional. If it is not installed or cannot be imported, the app falls back to window-scoped hotkeys automatically.
+> **Nota:** En Linux, la librería `keyboard` requiere `sudo` para hotkeys globales. La app usa hotkeys de ventana como respaldo automático.
+>
+> **Wayland:** `pyautogui` y `keyboard` necesitan X11. Si usas Linux + Wayland, cierra sesión y elige «GNOME on Xorg» (o similar). La app mostrará una advertencia si detecta Wayland.
 
-## Usage
+## ▶️ Uso
 
-Run the application:
+Ejecutar la aplicación:
 
 ```bash
-python autoclicker.py
+uv run python autoclicker.py
+# O directamente:
+uv run autoclicker
 ```
 
-### Controls
+### Controles
 
-| Action         | Hotkey | Button     |
-|----------------|--------|------------|
-| Start clicking | F1     | INICIAR    |
-| Stop clicking  | F2     | DETENER    |
-| Emergency stop | Esc    | —          |
+| Acción             | Hotkey | Botón      |
+|--------------------|--------|------------|
+| Iniciar clics      | F1     | ▶ INICIAR  |
+| Detener clics      | F2     | ⏹ DETENER  |
+| Parada de emergencia | Esc  | —          |
 
-### Hotkey modes
+### Modos de hotkeys
 
-- **Windows (global):** Hotkeys work system-wide, even when the AutoClicker window is not focused. Requires the `keyboard` library.
-- **Linux / macOS (window):** Hotkeys only work when the AutoClicker window is focused. Click on the window first before using hotkeys.
+- **Windows (global):** Las hotkeys funcionan en todo el sistema, incluso sin enfocar la ventana. Requiere la librería `keyboard`.
+- **Linux / macOS (ventana):** Las hotkeys solo funcionan con la ventana enfocada. Haz clic en la ventana antes de usar las hotkeys.
 
 ### Failsafe
 
-PyAutoGUI's failsafe is enabled by default. Move your mouse cursor to the **top-left corner** of the screen to immediately abort all clicking.
+El failsafe de PyAutoGUI está activado por defecto. Mueve el cursor a la **esquina superior izquierda** de la pantalla para abortar todos los clics inmediatamente.
 
-## Building a Windows executable
+## 🔨 Compilar ejecutables
 
-The project includes a GitHub Actions workflow that builds a standalone `.exe` on every push or PR to `main`:
+El proyecto incluye workflows de GitHub Actions para Windows y Linux:
 
 ```
-.github/workflows/build-windows.yml
+.github/workflows/
+├── build-windows.yml    # Compilar .exe para Windows
+└── build-linux.yml      # Compilar binario para Linux
 ```
 
-The workflow uses [PyInstaller](https://pypi.org/project/PyInstaller/) to produce a single-file executable:
+Ambos usan [PyInstaller](https://pypi.org/project/PyInstaller/) mediante `uv`:
 
 ```bash
-pyinstaller --onefile --windowed --name AutoClicker --noconsole autoclicker.py
+uv run pyinstaller --onefile --windowed --name AutoClicker --noconsole autoclicker.py
 ```
 
-You can also run this command locally (after installing PyInstaller) to generate `dist/AutoClicker.exe`.
+Para descargar un ejecutable compilado, ve a la pestaña **Actions** del repositorio, selecciona la ejecución más reciente y descarga el artefacto.
 
-To download the built executable, go to the **Actions** tab in the GitHub repository, select the latest successful workflow run, and download the **AutoClicker-Windows** artifact.
-
-## Project Structure
+## 📁 Estructura del proyecto
 
 ```
 AutoClicker/
-├── autoclicker.py               # Main application (single-file)
+├── autoclicker.py               # Aplicación principal
+├── pyproject.toml               # Configuración y dependencias (uv)
+├── tests/
+│   └── test_autoclicker.py      # Tests unitarios
 ├── .github/
 │   └── workflows/
-│       └── build-windows.yml    # CI workflow to build Windows .exe
+│       ├── build-windows.yml    # CI: .exe para Windows
+│       └── build-linux.yml      # CI: binario para Linux
 ├── .gitignore
 └── README.md
 ```
 
-## How It Works
+## ⚙️ Cómo funciona
 
-1. **ClickThread** — a `QThread` subclass that runs a loop clicking at the current mouse position using `pyautogui.click()` at the configured interval.
-2. **AutoclickerWindow** — the main `QMainWindow` that provides the UI, manages the click thread, and handles hotkey input.
-3. On startup, the app detects the operating system and configures hotkeys accordingly (global on Windows, window-scoped elsewhere).
+1. **ClickThread** — subclase de `QThread` que ejecuta un bucle haciendo clic en la posición actual del mouse con `pyautogui.click()` en el intervalo configurado.
+2. **AutoclickerWindow** — `QMainWindow` principal que provee la interfaz, gestiona el hilo de clics y maneja la entrada de hotkeys.
+3. Al iniciar, la app detecta el sistema operativo y configura las hotkeys según corresponda (globales en Windows, de ventana en otros SO).
 
-## License
+## 🔖 Releases automáticos
 
-This project does not currently specify a license. Contact the repository owner for usage terms.
+Al empujar un tag con formato `v*` (ej. `v1.0.0`), GitHub Actions compila los binarios para Windows y Linux y los publica automáticamente en [Releases](https://github.com/Cesar-RG/AutoClicker/releases):
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+## 📄 Licencia
+
+[MIT](LICENSE) — haz lo que quieras con el código.
