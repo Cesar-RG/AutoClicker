@@ -228,6 +228,8 @@ class AutoclickerWindow(QMainWindow):
         self.click_thread = ClickThread()
         self.click_thread.set_interval(1.0 / cps)
         self.click_thread.clicks_updated.connect(self._actualizar_contador)
+        # Si el hilo termina inesperadamente (excepcion), resetear la UI
+        self.click_thread.finished.connect(self._on_thread_finished)
 
         self.clicking = True
         self.total_clicks = 0
@@ -262,6 +264,16 @@ class AutoclickerWindow(QMainWindow):
         """Actualiza el contador de clics en la interfaz."""
         self.total_clicks = clicks
         self.clicks_label.setText(f"Clics: {clicks:,}")
+
+    def _on_thread_finished(self) -> None:
+        """Si el hilo termino pero la UI aun cree que esta cliqueando,
+        resetea el estado. Esto ocurre cuando el hilo muere por excepcion."""
+        if self.clicking:
+            logger.warning("El hilo de clics termino inesperadamente")
+            self.clicking = False
+            self.start_btn.setEnabled(True)
+            self.stop_btn.setEnabled(False)
+            self.status_label.setText("Error: hilo detenido")
 
     # -- Cierre de la ventana -------------------------------------------------
 

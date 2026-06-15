@@ -122,23 +122,30 @@ Para descargar un ejecutable compilado, ve a la pestaña **Actions** del reposit
 
 ```
 AutoClicker/
-├── autoclicker.py               # Aplicación principal
-├── pyproject.toml               # Configuración y dependencias (uv)
+├── autoclicker.py                  # Punto de entrada (wrapper)
+├── autoclicker/
+│   ├── __init__.py                 # main(): crea la aplicacion Qt
+│   ├── config.py                   # Deteccion SO, logging, tema visual
+│   ├── thread.py                   # ClickThread (QThread con pyautogui)
+│   ├── hotkeys_windows.py          # Hotkeys globales (keyboard)
+│   ├── hotkeys_unix.py             # Hotkeys de ventana (Linux/macOS)
+│   └── window.py                   # AutoclickerWindow (UI principal)
+├── pyproject.toml                  # Configuracion y dependencias (uv)
 ├── tests/
-│   └── test_autoclicker.py      # Tests unitarios
+│   └── test_autoclicker.py         # Tests unitarios (pytest + pytest-qt)
 ├── .github/
 │   └── workflows/
-│       ├── build-windows.yml    # CI: .exe para Windows
-│       └── build-linux.yml      # CI: binario para Linux
+│       ├── build-windows.yml       # CI: .exe para Windows
+│       └── build-linux.yml         # CI: binario para Linux
 ├── .gitignore
 └── README.md
 ```
 
-## Cómo funciona
+## Como funciona
 
-1. **ClickThread** -- subclase de `QThread` que ejecuta un bucle haciendo clic en la posición actual del mouse con `pyautogui.click()` en el intervalo configurado.
-2. **AutoclickerWindow** -- `QMainWindow` principal que provee la interfaz, gestiona el hilo de clics y maneja la entrada de hotkeys.
-3. Al iniciar, la app detecta el sistema operativo y configura las hotkeys según corresponda (globales en Windows, de ventana en otros SO).
+1. **ClickThread** -- subclase de `QThread` que ejecuta un bucle haciendo clic con `pyautogui.click()` en el intervalo configurado. Se detiene con `requestInterruption()`.
+2. **AutoclickerWindow** -- `QMainWindow` principal que provee la interfaz, gestiona el hilo de clics y maneja las hotkeys (globales en Windows, de ventana en Linux/macOS).
+3. Al iniciar, la app detecta el sistema operativo y carga el modulo de hotkeys correspondiente.
 
 ## Releases automáticos
 

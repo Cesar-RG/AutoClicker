@@ -40,8 +40,7 @@ class ClickThread(QThread):
         clicks = 0
         while not self.isInterruptionRequested():
             try:
-                posicion_actual = pyautogui.position()
-                pyautogui.click(posicion_actual.x, posicion_actual.y)
+                pyautogui.click()
                 clicks += 1
                 self.clicks_updated.emit(clicks)
                 time.sleep(self.interval)

@@ -57,6 +57,8 @@ def registrar_hotkeys_globales(
 def eliminar_hotkeys_globales(listeners: list[Any]) -> None:
     """Elimina los listeners de hotkeys registrados."""
     for listener in listeners:
+        if listener is None:
+            continue
         try:
             keyboard.remove_hotkey(listener)
         except Exception:
