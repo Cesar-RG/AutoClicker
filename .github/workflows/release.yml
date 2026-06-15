@@ -17,7 +17,9 @@ jobs:
 
       - uses: astral-sh/setup-uv@v4
 
-      - run: uv sync
+      - run: uv sync --group build
+
+      - run: uv run pytest -v
 
       - run: uv run pyinstaller --onefile --windowed --name AutoClicker --noconsole autoclicker.py
 
@@ -38,9 +40,11 @@ jobs:
 
       - uses: astral-sh/setup-uv@v4
 
-      - run: uv sync
+      - run: uv sync --group build
 
-      - run: uv run pyinstaller --onefile --windowed --name AutoClicker --noconsole autoclicker.py
+      - run: uv run pytest -v
+
+      - run: uv run pyinstaller --onefile --windowed --name AutoClicker autoclicker.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
