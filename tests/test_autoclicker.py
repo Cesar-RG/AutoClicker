@@ -17,13 +17,9 @@ import pytest  # noqa: E402
 from PySide6.QtCore import Qt  # noqa: E402
 from PySide6.QtGui import QKeyEvent  # noqa: E402
 
-from autoclicker import (  # noqa: E402
-    STYLESHEET,
-    SYSTEM,
-    USE_GLOBAL_HOTKEYS,
-    AutoclickerWindow,
-    ClickThread,
-)
+from autoclicker.config import STYLESHEET, SYSTEM, USE_GLOBAL_HOTKEYS  # noqa: E402
+from autoclicker.thread import ClickThread  # noqa: E402
+from autoclicker.window import AutoclickerWindow  # noqa: E402
 
 
 class TestClickThread:
@@ -110,7 +106,7 @@ class TestAutoclickerWindow:
         assert window.clicking is False
         assert window.start_btn.isEnabled()
         assert not window.stop_btn.isEnabled()
-        assert window.status_label.text() == "✅ Listo"
+        assert window.status_label.text() == "Listo"
 
     def test_start_clicking(self, qtbot) -> None:  # noqa: ANN001
         window = AutoclickerWindow()
@@ -160,7 +156,7 @@ class TestAutoclickerWindow:
         window.emergency_stop()
 
         assert window.clicking is False
-        assert window.status_label.text() == "🛑 EMERGENCIA"
+        assert window.status_label.text() == "Emergencia"
 
     def test_cps_changes_interval(self, qtbot) -> None:  # noqa: ANN001
         window = AutoclickerWindow()
@@ -177,7 +173,7 @@ class TestAutoclickerWindow:
         window = AutoclickerWindow()
         qtbot.addWidget(window)
 
-        window._update_clicks(42)
+        window._actualizar_contador(42)
         assert window.clicks_label.text() == "Clics: 42"
         assert window.total_clicks == 42
 
@@ -225,7 +221,7 @@ class TestAutoclickerWindow:
         window.keyPressEvent(event)
 
         assert window.clicking is False
-        assert window.status_label.text() == "🛑 EMERGENCIA"
+        assert window.status_label.text() == "Emergencia"
 
     def test_hotkey_signals_connected(self, qtbot) -> None:  # noqa: ANN001
         """Verifica que las signals de hotkey disparan los metodos."""

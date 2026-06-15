@@ -31,13 +31,13 @@ jobs:
         run: uv run ruff check .
 
       - name: Type check
-        run: uv run mypy autoclicker.py
+        run: uv run mypy -p autoclicker
 
       - name: Run tests
         run: uv run pytest -v
 
       - name: Build EXE
-        run: uv run pyinstaller --onefile --windowed --name AutoClicker --noconsole autoclicker.py
+        run: uv run pyinstaller --onefile --windowed --name AutoClicker --noconsole --hidden-import autoclicker.config --hidden-import autoclicker.thread --hidden-import autoclicker.window --hidden-import autoclicker.hotkeys_windows autoclicker.py
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
