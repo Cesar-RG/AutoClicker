@@ -5,6 +5,9 @@ on:
     tags:
       - "v*"
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -17,7 +20,11 @@ jobs:
 
       - uses: astral-sh/setup-uv@v4
 
-      - run: uv sync --group build
+      - run: uv sync --group build --group dev
+
+      - run: uv run ruff check .
+
+      - run: uv run mypy autoclicker.py
 
       - run: uv run pytest -v
 
@@ -40,7 +47,11 @@ jobs:
 
       - uses: astral-sh/setup-uv@v4
 
-      - run: uv sync --group build
+      - run: uv sync --group build --group dev
+
+      - run: uv run ruff check .
+
+      - run: uv run mypy autoclicker.py
 
       - run: uv run pytest -v
 

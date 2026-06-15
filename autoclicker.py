@@ -51,7 +51,9 @@ IS_WINDOWS: bool = SYSTEM == "Windows"
 IS_LINUX: bool = SYSTEM == "Linux"
 IS_MACOS: bool = SYSTEM == "Darwin"
 
-IS_WAYLAND: bool = IS_LINUX and os.environ.get("XDG_SESSION_TYPE", "").lower() == "wayland"
+IS_WAYLAND: bool = (
+    IS_LINUX and os.environ.get("XDG_SESSION_TYPE", "").lower() == "wayland"
+)
 if IS_WAYLAND:
     logger.warning(
         "Wayland detectado — pyautogui y keyboard requieren X11. "
@@ -61,7 +63,11 @@ if IS_WAYLAND:
 pyautogui.FAILSAFE = True
 
 USE_GLOBAL_HOTKEYS: bool = IS_WINDOWS and KEYBOARD_AVAILABLE
-logger.info("SO: %s | Hotkeys: %s", SYSTEM, "GLOBALES" if USE_GLOBAL_HOTKEYS else "VENTANA")
+logger.info(
+    "SO: %s | Hotkeys: %s",
+    SYSTEM,
+    "GLOBALES" if USE_GLOBAL_HOTKEYS else "VENTANA",
+)
 
 # ---------------------------------------------------------------------------
 # Constantes de estilo
@@ -116,12 +122,15 @@ class ClickThread(QThread):
     """Hilo que ejecuta clics a intervalos regulares en la posición actual."""
 
     clicks_updated = Signal(int)
+    _lock: threading.Lock
+    _running: bool
+    interval: float
 
     def __init__(self) -> None:
         super().__init__()
         self._lock = threading.Lock()
         self._running = False
-        self.interval: float = 1.0
+        self.interval = 1.0
 
     @property
     def running(self) -> bool:
@@ -157,6 +166,10 @@ class ClickThread(QThread):
 class AutoclickerWindow(QMainWindow):
     """Ventana principal del AutoClicker."""
 
+    hotkey_start = Signal()
+    hotkey_stop = Signal()
+    hotkey_emergency = Signal()
+
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("🖱️ AutoClicker Multiplataforma")
@@ -170,6 +183,10 @@ class AutoclickerWindow(QMainWindow):
         self.setStyleSheet(STYLESHEET)
 
         self._settings = QSettings("AutoClicker", "AutoClicker")
+
+        self.hotkey_start.connect(self.start_clicking)
+        self.hotkey_stop.connect(self.stop_clicking)
+        self.hotkey_emergency.connect(self.emergency_stop)
 
         self._init_ui()
         self._setup_input()
@@ -187,7 +204,11 @@ class AutoclickerWindow(QMainWindow):
 
         # SO detectado
         so_label = QLabel(f"🖥️ {SYSTEM}" + (" (Wayland ⚠️)" if IS_WAYLAND else ""))
-        so_label.setStyleSheet("color: #e67e22;" if IS_WAYLAND else "color: #2ecc71; font-size: 14px;")
+        so_label.setStyleSheet(
+            "color: #e67e22;"
+            if IS_WAYLAND
+            else "color: #2ecc71; font-size: 14px;"
+        )
         so_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(so_label)
 
@@ -232,10 +253,14 @@ class AutoclickerWindow(QMainWindow):
 
         # Info hotkeys
         if USE_GLOBAL_HOTKEYS:
-            hotkey_info = QLabel("🌐 F1=INICIAR  F2=DETENER  ESC=EMERGENCIA\n(Hotkeys GLOBALES)")
+            hotkey_info = QLabel(
+                "🌐 F1=INICIAR  F2=DETENER  ESC=EMERGENCIA\n(Hotkeys GLOBALES)"
+            )
             hotkey_info.setStyleSheet("color: #2ecc71; font-size: 12px;")
         else:
-            hotkey_info = QLabel("🪟 F1=INICIAR  F2=DETENER  ESC=EMERGENCIA\n(Clic en ventana primero)")
+            hotkey_info = QLabel(
+                "🪟 F1=INICIAR  F2=DETENER  ESC=EMERGENCIA\n(Clic en ventana primero)"
+            )
             hotkey_info.setStyleSheet("color: #f39c12; font-size: 12px;")
         hotkey_info.setAlignment(Qt.AlignCenter)
         layout.addWidget(hotkey_info)
@@ -259,24 +284,19 @@ class AutoclickerWindow(QMainWindow):
     def _setup_global_hotkeys(self) -> None:
         try:
             self.keyboard_listeners = [
-                keyboard.add_hotkey("f1", self._on_hotkey_start),
-                keyboard.add_hotkey("f2", self._on_hotkey_stop),
-                keyboard.add_hotkey("esc", self.emergency_stop),
+                keyboard.add_hotkey("f1", self.hotkey_start.emit),
+                keyboard.add_hotkey("f2", self.hotkey_stop.emit),
+                keyboard.add_hotkey("esc", self.hotkey_emergency.emit),
             ]
             if all(self.keyboard_listeners):
                 logger.info("Hotkeys GLOBALES Windows activados")
             else:
-                logger.warning("Algunos hotkeys globales no se registraron correctamente")
+                logger.warning(
+                    "Algunos hotkeys globales no se registraron correctamente"
+                )
         except Exception:
             logger.exception("No se pudieron registrar hotkeys globales")
             self.keyboard_listeners = []
-
-    def _on_hotkey_start(self) -> None:
-        if not self.clicking:
-            self.start_clicking()
-
-    def _on_hotkey_stop(self) -> None:
-        self.stop_clicking()
 
     # ------------------------------------------------------------------
     # Persistencia
@@ -305,8 +325,8 @@ class AutoclickerWindow(QMainWindow):
             self.stop_clicking()
         elif key == Qt.Key_Escape:
             self.emergency_stop()
-
-        super().keyPressEvent(event)
+        else:
+            super().keyPressEvent(event)
 
     # ------------------------------------------------------------------
     # Control de clics
