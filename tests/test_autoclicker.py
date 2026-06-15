@@ -14,10 +14,17 @@ _mock_pyautogui.FAILSAFE = True
 _mock_pyautogui.position.return_value = MagicMock(x=100, y=100)
 sys.modules["pyautogui"] = _mock_pyautogui
 
+import pytest  # noqa: E402
 from PySide6.QtCore import Qt  # noqa: E402
 from PySide6.QtGui import QKeyEvent  # noqa: E402
 
-from autoclicker import STYLESHEET, SYSTEM, AutoclickerWindow, ClickThread  # noqa: E402
+from autoclicker import (  # noqa: E402
+    STYLESHEET,
+    SYSTEM,
+    USE_GLOBAL_HOTKEYS,
+    AutoclickerWindow,
+    ClickThread,
+)
 
 
 class TestClickThread:
@@ -171,13 +178,14 @@ class TestAutoclickerWindow:
         qtbot.addWidget(window)
 
         window.start_clicking()
+        thread = window.click_thread
         window.stop_clicking()
-        window.click_thread.wait(2000)
+
+        qtbot.wait_until(lambda: thread.isFinished(), timeout=5000)
 
         assert window.clicking is False
         assert window.start_btn.isEnabled()
         assert not window.stop_btn.isEnabled()
-        assert not window.click_thread.isRunning()
 
     def test_emergency_stop(self, qtbot) -> None:  # noqa: ANN001
         window = AutoclickerWindow()
@@ -208,6 +216,10 @@ class TestAutoclickerWindow:
         assert window.clicks_label.text() == "Clics: 42"
         assert window.total_clicks == 42
 
+    @pytest.mark.skipif(
+        USE_GLOBAL_HOTKEYS,
+        reason="keyPressEvent no procesa hotkeys en Windows (usa signals globales)",
+    )
     def test_keypress_f1_starts(self, qtbot) -> None:  # noqa: ANN001
         window = AutoclickerWindow()
         qtbot.addWidget(window)
@@ -219,6 +231,10 @@ class TestAutoclickerWindow:
 
         window.stop_clicking()
 
+    @pytest.mark.skipif(
+        USE_GLOBAL_HOTKEYS,
+        reason="keyPressEvent no procesa hotkeys en Windows (usa signals globales)",
+    )
     def test_keypress_f2_stops(self, qtbot) -> None:  # noqa: ANN001
         window = AutoclickerWindow()
         qtbot.addWidget(window)
@@ -230,6 +246,10 @@ class TestAutoclickerWindow:
 
         assert window.clicking is False
 
+    @pytest.mark.skipif(
+        USE_GLOBAL_HOTKEYS,
+        reason="keyPressEvent no procesa hotkeys en Windows (usa signals globales)",
+    )
     def test_keypress_escape_emergency(self, qtbot) -> None:  # noqa: ANN001
         window = AutoclickerWindow()
         qtbot.addWidget(window)

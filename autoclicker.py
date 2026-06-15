@@ -358,7 +358,6 @@ class AutoclickerWindow(QMainWindow):
     def stop_clicking(self) -> None:
         if self.click_thread is not None:
             self.click_thread.running = False
-            self.click_thread.quit()
             self.click_thread.wait(1000)
         self.clicking = False
         self.start_btn.setEnabled(True)
