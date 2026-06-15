@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import sys
-import threading
 from unittest.mock import MagicMock
 
 # ---------------------------------------------------------------------------
@@ -32,7 +31,7 @@ class TestClickThread:
 
     def test_initial_state(self) -> None:
         thread = ClickThread()
-        assert thread.running is False
+        assert thread.isInterruptionRequested() is False
         assert thread.interval == 1.0
 
     def test_set_interval(self) -> None:
@@ -40,45 +39,13 @@ class TestClickThread:
         thread.set_interval(0.5)
         assert thread.interval == 0.5
 
-    def test_running_property_thread_safety(self) -> None:
-        """Verifica que running se puede leer/escribir desde múltiples hilos."""
-        thread = ClickThread()
-        errors: list[Exception] = []
-
-        def writer() -> None:
-            try:
-                for _ in range(1000):
-                    thread.running = True
-                    thread.running = False
-            except Exception as e:
-                errors.append(e)
-
-        def reader() -> None:
-            try:
-                for _ in range(1000):
-                    _ = thread.running
-            except Exception as e:
-                errors.append(e)
-
-        threads = [
-            threading.Thread(target=writer),
-            threading.Thread(target=reader),
-            threading.Thread(target=writer),
-        ]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
-
-        assert not errors, f"Errores de concurrencia: {errors}"
-
-    def test_run_stops_when_running_false(self, qtbot) -> None:  # noqa: ANN001
-        """El hilo debe detenerse cuando running es False."""
+    def test_run_stops_on_interruption(self, qtbot) -> None:  # noqa: ANN001
+        """El hilo debe detenerse al llamar requestInterruption."""
         thread = ClickThread()
         thread.set_interval(0.01)
         thread.start()
         qtbot.wait(100)
-        thread.running = False
+        thread.requestInterruption()
         thread.wait(2000)
         assert not thread.isRunning()
 
@@ -92,7 +59,7 @@ class TestClickThread:
         with qtbot.wait_signal(thread.clicks_updated, timeout=1000):
             thread.start()
 
-        thread.running = False
+        thread.requestInterruption()
         thread.wait(2000)
 
         assert len(signals_received) > 0
@@ -178,14 +145,12 @@ class TestAutoclickerWindow:
         qtbot.addWidget(window)
 
         window.start_clicking()
-        thread = window.click_thread
         window.stop_clicking()
-
-        qtbot.wait_until(lambda: thread.isFinished(), timeout=5000)
 
         assert window.clicking is False
         assert window.start_btn.isEnabled()
         assert not window.stop_btn.isEnabled()
+        assert not window.click_thread.isRunning()
 
     def test_emergency_stop(self, qtbot) -> None:  # noqa: ANN001
         window = AutoclickerWindow()

@@ -9,7 +9,6 @@ import logging
 import os
 import platform
 import sys
-import threading
 import time
 from typing import Any
 
@@ -122,33 +121,18 @@ class ClickThread(QThread):
     """Hilo que ejecuta clics a intervalos regulares en la posición actual."""
 
     clicks_updated = Signal(int)
-    _lock: threading.Lock
-    _running: bool
     interval: float
 
     def __init__(self) -> None:
         super().__init__()
-        self._lock = threading.Lock()
-        self._running = False
         self.interval = 1.0
-
-    @property
-    def running(self) -> bool:
-        with self._lock:
-            return self._running
-
-    @running.setter
-    def running(self, value: bool) -> None:
-        with self._lock:
-            self._running = value
 
     def set_interval(self, interval: float) -> None:
         self.interval = interval
 
     def run(self) -> None:
-        self.running = True
         clicks = 0
-        while self.running:
+        while not self.isInterruptionRequested():
             try:
                 current_pos = pyautogui.position()
                 pyautogui.click(current_pos.x, current_pos.y)
@@ -357,8 +341,8 @@ class AutoclickerWindow(QMainWindow):
 
     def stop_clicking(self) -> None:
         if self.click_thread is not None:
-            self.click_thread.running = False
-            self.click_thread.wait(1000)
+            self.click_thread.requestInterruption()
+            self.click_thread.wait(2000)
         self.clicking = False
         self.start_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)
