@@ -9,35 +9,31 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  build-windows:
+  build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
+        with: {python-version: "3.12"}
       - uses: astral-sh/setup-uv@v4
-
       - run: uv sync --group build --group dev
-
       - run: uv run ruff check .
-
       - run: uv run mypy -p autoclicker
-
       - run: uv run pytest -v
-
-      - run: uv run pyinstaller --onefile --windowed --name AutoClicker --noconsole --hidden-import autoclicker.config --hidden-import autoclicker.thread --hidden-import autoclicker.window --hidden-import autoclicker.hotkeys_windows autoclicker.py
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - run: >
+          uv run pyinstaller --onefile --windowed --name AutoClicker --noconsole
+          --hidden-import autoclicker.config
+          --hidden-import autoclicker.thread
+          --hidden-import autoclicker.window
+          --hidden-import autoclicker.hotkeys_windows
+          autoclicker.py
+      - uses: actions/upload-artifact@v4
         with:
           name: AutoClicker-Windows
           path: dist/AutoClicker.exe
 
   release:
-    needs: [build-windows]
+    needs: [build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -46,9 +42,7 @@ jobs:
         with:
           name: AutoClicker-Windows
           path: artifacts/
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v2
         with:
           files: artifacts/AutoClicker.exe
           generate_release_notes: true

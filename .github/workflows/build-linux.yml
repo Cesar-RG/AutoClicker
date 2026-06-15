@@ -8,46 +8,62 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  QT_QPA_PLATFORM: offscreen
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
-    env:
-      QT_QPA_PLATFORM: offscreen
-
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - uses: astral-sh/setup-uv@v4
+      - run: uv sync --group dev
+      - run: uv run ruff check .
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - uses: astral-sh/setup-uv@v4
+      - run: uv sync --group dev
+      - run: uv run mypy -p autoclicker
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-
-      - name: Install system dependencies
-        run: |
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - uses: astral-sh/setup-uv@v4
+      - run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq libegl1 libgl1 libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libxcb-shape0
+      - run: uv sync --group dev
+      - run: uv run pytest -v
 
-      - name: Install Python dependencies
-        run: uv sync --group build --group dev
-
-      - name: Lint
-        run: uv run ruff check .
-
-      - name: Type check
-        run: uv run mypy -p autoclicker
-
-      - name: Run tests
-        run: uv run pytest -v
-
-      - name: Build binary
-        run: uv run pyinstaller --onefile --windowed --name AutoClicker --hidden-import autoclicker.config --hidden-import autoclicker.thread --hidden-import autoclicker.window --hidden-import autoclicker.hotkeys_unix autoclicker.py
-
-      - name: Upload binary
-        uses: actions/upload-artifact@v4
+  build:
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - uses: astral-sh/setup-uv@v4
+      - run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libxcb-shape0
+      - run: uv sync --group build
+      - run: >
+          uv run pyinstaller --onefile --windowed --name AutoClicker
+          --hidden-import autoclicker.config
+          --hidden-import autoclicker.thread
+          --hidden-import autoclicker.window
+          --hidden-import autoclicker.hotkeys_unix
+          autoclicker.py
+      - uses: actions/upload-artifact@v4
         with:
           name: AutoClicker-Linux
           path: dist/AutoClicker
