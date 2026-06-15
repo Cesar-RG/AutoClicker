@@ -38,6 +38,8 @@ jobs:
 
   build-linux:
     runs-on: ubuntu-latest
+    env:
+      QT_QPA_PLATFORM: offscreen
     steps:
       - uses: actions/checkout@v4
 
@@ -68,7 +70,7 @@ jobs:
           path: dist/AutoClicker
 
   release:
-    needs: [build-windows, build-linux]
+    needs: [build-windows]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -78,15 +80,8 @@ jobs:
           name: AutoClicker-Windows
           path: artifacts/
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: AutoClicker-Linux
-          path: artifacts/
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            artifacts/AutoClicker.exe
-            artifacts/AutoClicker
+          files: artifacts/AutoClicker.exe
           generate_release_notes: true
